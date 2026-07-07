@@ -2,13 +2,14 @@ import type { CSSProperties } from 'react'
 import type { TaskKey } from '@/lib/site-config'
 
 /*
-  Yelp-style task surfaces.
+  Playful directory task surfaces.
 
-  Every task (archive + detail) now shares one cohesive premium identity:
-  clean white surfaces, the signature Yelp red accent, hairline gray borders
-  and a single crisp sans-serif — exactly like Yelp. Per-task copy (kicker /
-  note) still varies so each section keeps a little voice, but the visual
-  language is unified. Tokens are delivered via CSS variables (`--tk-*`).
+  Every task (archive + detail) shares one cohesive warm identity: cream
+  paper surfaces, a terracotta accent, sage hairlines, and deep espresso
+  text — the same "playful directory" palette used across the whole site.
+  Per-task copy (kicker / note) still varies so each section keeps a little
+  voice, but the visual language is unified. Tokens are delivered via CSS
+  variables (`--tk-*`).
 */
 
 export type TaskTheme = {
@@ -32,24 +33,24 @@ export type TaskTheme = {
   radius: string
 }
 
-const YELP_FONT = "'Inter', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif"
+const DISPLAY_FONT = "'Inter', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif"
 
-// Shared Yelp palette — every task inherits this; only kicker/note differ.
+// Shared "playful directory" palette — every task inherits this; only kicker/note differ.
 const base = {
   dark: false,
-  fontDisplay: YELP_FONT,
-  fontBody: YELP_FONT,
-  bg: '#ffffff',
-  surface: '#ffffff',
-  raised: '#f7f7f7',
-  text: '#1a1a1a',
-  muted: '#6b6b6b',
-  line: '#e6e6e6',
-  accent: '#d32323',
-  accentSoft: '#fdecec',
-  onAccent: '#ffffff',
-  glow: 'rgba(211,35,35,0.06)',
-  radius: '0.75rem',
+  fontDisplay: DISPLAY_FONT,
+  fontBody: DISPLAY_FONT,
+  bg: '#F7F1DE',
+  surface: '#FFFCF3',
+  raised: '#EFE6CC',
+  text: '#4E220F',
+  muted: '#7A5B44',
+  line: '#E1D6B5',
+  accent: '#9D6638',
+  accentSoft: '#EDE6D2',
+  onAccent: '#FDF8EC',
+  glow: 'rgba(157,102,56,0.10)',
+  radius: '1.25rem',
 } satisfies Omit<TaskTheme, 'kicker' | 'note'>
 
 export const taskThemes: Record<TaskKey, TaskTheme> = {

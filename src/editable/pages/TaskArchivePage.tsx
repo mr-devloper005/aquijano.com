@@ -9,6 +9,8 @@ import { taskPageMetadata } from '@/config/site.content'
 import { taskPageVoices } from '@/editable/content/task-pages.content'
 import { EditableSiteShell } from '@/editable/shell/EditableSiteShell'
 import { getTaskTheme, taskThemeStyle } from '@/editable/theme/task-themes'
+import { EditableHeroCollage } from '@/editable/sections/EditableHeroCollage'
+import { Ads } from '@/lib/ads'
 
 export const revalidate = 3
 
@@ -65,8 +67,30 @@ const taskGrid: Record<TaskKey, string> = {
   profile: 'grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4',
 }
 
-// Shared premium surface: hairline border, soft radius, smooth lift on hover.
-const cardBase = 'group block rounded-[var(--tk-radius)] border border-[var(--tk-line)] bg-[var(--tk-surface)] transition duration-500 hover:-translate-y-1.5 hover:shadow-[0_32px_72px_rgba(15,23,42,0.14)]'
+// Shared warm surface: hairline sage/border, soft chunky radius, smooth lift on hover.
+const cardBase = 'group block rounded-[var(--tk-radius)] border border-[var(--tk-line)] bg-[var(--tk-surface)] transition duration-500 hover:-translate-y-1.5 hover:shadow-[0_24px_56px_rgba(78,34,15,0.16)]'
+
+// Same treatment as the home hero: latest real post images, newest first, deduped.
+function latestPostImages(posts: SitePost[], max = 8) {
+  const seen = new Set<string>()
+  const out: string[] = []
+  for (const post of posts) {
+    const img = getImage(post)
+    if (!img || img.includes('placeholder') || seen.has(img)) continue
+    seen.add(img)
+    out.push(img)
+    if (out.length >= max) break
+  }
+  return out
+}
+
+// Each requested listing page gets exactly one ad, in a different slot/placement
+// so the mix of formats feels natural rather than repeated everywhere.
+const archiveAdSlot: Partial<Record<TaskKey, string>> = {
+  article: 'in-feed',
+  profile: 'header',
+  listing: 'footer',
+}
 
 export async function EditableTaskArchiveRoute({
   task,
@@ -92,71 +116,96 @@ export function TaskArchiveView({ task, posts, pagination, category, basePath }:
   const page = pagination.page || 1
   const label = taskConfig?.label || task
   const categoryLabel = category === 'all' ? 'All categories' : CATEGORY_OPTIONS.find((item) => item.slug === category)?.name || category
+  const heroImages = latestPostImages(posts)
+  const adSlot = archiveAdSlot[task]
 
   return (
     <EditableSiteShell>
       <main style={taskThemeStyle(task)} className="min-h-screen bg-[var(--tk-bg)] text-[var(--tk-text)]">
-        <header className="relative overflow-hidden border-b border-[var(--tk-line)]">
-          <div className="pointer-events-none absolute inset-x-0 -top-40 h-96 bg-[radial-gradient(60%_60%_at_50%_0%,var(--tk-glow),transparent_70%)]" />
-          <div className="relative mx-auto max-w-[var(--editable-container)] px-6 py-20 sm:py-28 lg:px-8">
-            <div className="flex items-center gap-3 text-[11px] font-medium uppercase tracking-[0.34em] text-[var(--tk-accent)]">
-              <span>{theme.kicker}</span>
-              <span className="h-1 w-1 rounded-full bg-[var(--tk-accent)] opacity-50" />
-              <span className="text-[var(--tk-muted)]">{label}</span>
-            </div>
-            <h1 className="editable-display mt-6 max-w-3xl text-balance text-[2.5rem] font-semibold leading-[1.06] tracking-[-0.03em] sm:text-5xl lg:text-6xl">
-              {voice?.headline || `Browse ${label}`}
-            </h1>
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-[var(--tk-muted)]">{voice?.description || theme.note}</p>
-            {voice?.chips?.length ? (
-              <div className="mt-8 flex flex-wrap gap-2.5">
-                {voice.chips.map((chip) => (
-                  <span key={chip} className="rounded-full border border-[var(--tk-line)] bg-[var(--tk-surface)] px-3.5 py-1.5 text-xs font-medium text-[var(--tk-muted)]">{chip}</span>
-                ))}
+        <header className="relative">
+          <div className="relative h-[360px] w-full overflow-hidden sm:h-[420px]">
+            <EditableHeroCollage images={heroImages} />
+            <div className="absolute inset-0 bg-[var(--tk-text)]/30" />
+            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(78,34,15,0.88)_0%,rgba(78,34,15,0.55)_45%,rgba(78,34,15,0.22)_100%)]" />
+            <div className="relative mx-auto flex h-full max-w-[var(--editable-container)] flex-col justify-center px-6 lg:px-8">
+              <div className="flex items-center gap-3 text-[11px] font-medium uppercase tracking-[0.34em] text-[var(--tk-on-accent)]">
+                <span>{theme.kicker}</span>
+                <span className="h-1 w-1 rounded-full bg-[var(--tk-on-accent)] opacity-50" />
+                <span className="text-[var(--tk-on-accent)]/70">{label}</span>
               </div>
-            ) : null}
-
-            <div className="mt-12 flex flex-col gap-4 border-t border-[var(--tk-line)] pt-6 sm:flex-row sm:items-center sm:justify-between">
+              <h1 className="editable-display mt-5 max-w-3xl text-balance text-[2.25rem] font-extrabold leading-[1.06] tracking-[-0.01em] text-[var(--tk-on-accent)] sm:text-5xl lg:text-6xl">
+                {voice?.headline || `Browse ${label}`}
+              </h1>
+              <p className="mt-5 max-w-2xl text-base leading-8 text-[var(--tk-on-accent)]/85 sm:text-lg">{voice?.description || theme.note}</p>
+              {voice?.chips?.length ? (
+                <div className="mt-6 flex flex-wrap gap-2.5">
+                  {voice.chips.map((chip) => (
+                    <span key={chip} className="rounded-full bg-[var(--tk-on-accent)]/15 px-3.5 py-1.5 text-xs font-bold text-[var(--tk-on-accent)] backdrop-blur-sm">{chip}</span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          </div>
+          <div className="border-b border-[var(--tk-line)] bg-[var(--tk-surface)]">
+            <div className="mx-auto flex max-w-[var(--editable-container)] flex-col gap-4 px-6 py-6 sm:flex-row sm:items-center sm:justify-between lg:px-8">
               <p className="text-sm text-[var(--tk-muted)]">
-                <span className="font-semibold text-[var(--tk-text)]">{posts.length}</span> {posts.length === 1 ? 'post' : 'posts'} · {categoryLabel}
+                <span className="font-bold text-[var(--tk-text)]">{posts.length}</span> {posts.length === 1 ? 'post' : 'posts'} · {categoryLabel}
               </p>
-              <form action={basePath} className="flex items-center gap-2.5">
+              <form action={basePath} className="flex items-center gap-2.5 rounded-full border-2 border-[var(--tk-line)] bg-[var(--tk-surface)] p-1.5">
                 <div className="relative">
                   <select
                     name="category"
                     defaultValue={category}
-                    className="h-11 appearance-none rounded-full border border-[var(--tk-line)] bg-[var(--tk-surface)] pl-4 pr-10 text-sm font-medium text-[var(--tk-text)] outline-none transition focus:border-[var(--tk-accent)]"
+                    className="h-10 appearance-none rounded-full bg-transparent pl-4 pr-9 text-sm font-semibold text-[var(--tk-text)] outline-none"
                     aria-label={voice?.filterLabel || 'Filter category'}
                   >
                     <option value="all">All categories</option>
                     {CATEGORY_OPTIONS.map((item) => <option key={item.slug} value={item.slug}>{item.name}</option>)}
                   </select>
-                  <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--tk-muted)]" />
+                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--tk-muted)]" />
                 </div>
-                <button className="inline-flex h-11 items-center rounded-full bg-[var(--tk-accent)] px-5 text-sm font-semibold text-[var(--tk-on-accent)] transition hover:opacity-90">Apply</button>
+                <button className="inline-flex h-10 items-center rounded-full bg-[linear-gradient(135deg,var(--tk-accent)_0%,#C08A55_100%)] px-5 text-sm font-bold text-[var(--tk-on-accent)] transition duration-300 hover:-translate-y-0.5">Apply</button>
               </form>
             </div>
           </div>
         </header>
 
+        {adSlot === 'header' ? (
+          <div className="mx-auto max-w-6xl px-4 py-6">
+            <Ads slot="header" showLabel eager className="mx-auto w-full" />
+          </div>
+        ) : null}
+
         <section className="mx-auto max-w-[var(--editable-container)] px-6 py-16 sm:py-20 lg:px-8">
+          {adSlot === 'in-feed' ? (
+            <div className="mx-auto mb-12 max-w-6xl px-4">
+              <Ads slot="in-feed" showLabel eager className="mx-auto w-full" />
+            </div>
+          ) : null}
+
           {posts.length ? (
             <div className={taskGrid[task]}>
               {posts.map((post, index) => <ArchivePostCard key={post.id || post.slug} post={post} task={task} basePath={basePath} index={index} />)}
             </div>
           ) : (
-            <div className="mx-auto max-w-xl rounded-[var(--tk-radius)] border border-dashed border-[var(--tk-line)] bg-[var(--tk-surface)] px-8 py-16 text-center">
-              <Search className="mx-auto h-7 w-7 text-[var(--tk-muted)]" />
-              <h2 className="editable-display mt-5 text-2xl font-semibold tracking-[-0.02em]">Nothing here yet</h2>
+            <div className="mx-auto max-w-xl rounded-[2rem] border-2 border-dashed border-[var(--tk-line)] bg-[var(--tk-surface)] px-8 py-16 text-center">
+              <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[var(--tk-accent-soft)] text-2xl">🔍</span>
+              <h2 className="editable-display mt-5 text-2xl font-extrabold tracking-[-0.01em]">Nothing here yet — check back soon</h2>
               <p className="mt-2 text-sm leading-6 text-[var(--tk-muted)]">Try another category, or check back after new {label.toLowerCase()} are published.</p>
             </div>
           )}
 
+          {adSlot === 'footer' && posts.length ? (
+            <div className="mx-auto mt-12 max-w-6xl px-4">
+              <Ads slot="footer" showLabel eager className="mx-auto w-full" />
+            </div>
+          ) : null}
+
           {posts.length ? (
-            <nav className="mt-16 flex items-center justify-center gap-3 text-sm">
-              {pagination.hasPrevPage ? <Link href={pageHref(basePath, category, page - 1)} className="rounded-full border border-[var(--tk-line)] px-5 py-2.5 font-medium transition hover:border-[var(--tk-accent)]">Previous</Link> : null}
-              <span className="rounded-full border border-[var(--tk-line)] bg-[var(--tk-surface)] px-5 py-2.5 font-medium text-[var(--tk-muted)]">Page {page} of {pagination.totalPages || 1}</span>
-              {pagination.hasNextPage ? <Link href={pageHref(basePath, category, page + 1)} className="rounded-full border border-[var(--tk-line)] px-5 py-2.5 font-medium transition hover:border-[var(--tk-accent)]">Next</Link> : null}
+            <nav className="mt-16 flex items-center justify-center gap-2 text-sm">
+              {pagination.hasPrevPage ? <Link href={pageHref(basePath, category, page - 1)} className="rounded-full border-2 border-[var(--tk-line)] px-5 py-2.5 font-bold transition hover:border-[var(--tk-accent)] hover:text-[var(--tk-accent)]">Previous</Link> : null}
+              <span className="rounded-full bg-[var(--tk-accent)] px-5 py-2.5 font-bold text-[var(--tk-on-accent)]">Page {page} of {pagination.totalPages || 1}</span>
+              {pagination.hasNextPage ? <Link href={pageHref(basePath, category, page + 1)} className="rounded-full border-2 border-[var(--tk-line)] px-5 py-2.5 font-bold transition hover:border-[var(--tk-accent)] hover:text-[var(--tk-accent)]">Next</Link> : null}
             </nav>
           ) : null}
         </section>
@@ -232,7 +281,7 @@ function ArticleArchiveCard({ post, href, index }: { post: SitePost; href: strin
           <span>{category}</span>
           <span className="text-[var(--tk-muted)]">· No. {String(index + 1).padStart(2, '0')}</span>
         </div>
-        <h2 className="editable-display mt-3 text-2xl font-semibold leading-snug tracking-[-0.02em]">{post.title}</h2>
+        <h2 className="editable-display mt-3 text-2xl font-extrabold leading-snug tracking-[-0.01em]">{post.title}</h2>
         <RatingLine post={post} />
         <p className="mt-3 line-clamp-2 text-[15px] leading-7 text-[var(--tk-muted)]">{getSummary(post)}</p>
         <CardArrow label="Read article" />
@@ -248,14 +297,14 @@ function ListingArchiveCard({ post, href }: { post: SitePost; href: string }) {
   const website = getField(post, ['website', 'url'])
   return (
     <Link href={href} className={`${cardBase} flex items-center gap-5 p-5 sm:p-6`}>
-      <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-[1rem] border border-[var(--tk-line)] bg-[var(--tk-raised)]">
+      <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-[var(--tk-line)] bg-[var(--tk-raised)]">
         {logo ? <img src={logo} alt="" className="h-full w-full object-cover" /> : <BriefcaseBusiness className="h-9 w-9 text-[var(--tk-muted)]" />}
       </div>
       <div className="min-w-0 flex-1">
-        <h2 className="editable-display truncate text-xl font-semibold tracking-[-0.02em]">{post.title}</h2>
+        <h2 className="editable-display truncate text-xl font-extrabold tracking-[-0.01em]">{post.title}</h2>
         <RatingLine post={post} />
         <p className="mt-2 line-clamp-1 text-sm leading-6 text-[var(--tk-muted)]">{getSummary(post)}</p>
-        <div className="mt-3 flex flex-wrap gap-3 text-xs font-medium text-[var(--tk-muted)]">
+        <div className="mt-3 flex flex-wrap gap-3 text-xs font-bold text-[var(--tk-muted)]">
           {location ? <span className="inline-flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5 text-[var(--tk-accent)]" /> {location}</span> : null}
           {phone ? <span className="inline-flex items-center gap-1.5"><Phone className="h-3.5 w-3.5 text-[var(--tk-accent)]" /> {phone}</span> : null}
           {website ? <span className="inline-flex items-center gap-1.5"><Globe className="h-3.5 w-3.5 text-[var(--tk-accent)]" /> Website</span> : null}
@@ -290,13 +339,13 @@ function ClassifiedArchiveCard({ post, href }: { post: SitePost; href: string })
 function ImageArchiveCard({ post, href, index }: { post: SitePost; href: string; index: number }) {
   const image = getImage(post)
   return (
-    <Link href={href} className="group mb-5 block break-inside-avoid overflow-hidden rounded-[var(--tk-radius)] border border-[var(--tk-line)] bg-[var(--tk-surface)] transition duration-300 hover:-translate-y-1">
+    <Link href={href} className="group mb-5 block break-inside-avoid overflow-hidden rounded-[var(--tk-radius)] border border-[var(--tk-line)] bg-[var(--tk-surface)] transition duration-300 hover:-translate-y-1.5 hover:shadow-[0_18px_40px_rgba(78,34,15,0.18)]">
       <div className={`relative overflow-hidden ${index % 3 === 0 ? 'aspect-[3/4]' : 'aspect-[4/3]'}`}>
         <img src={image} alt="" className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.04]" />
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_45%,rgba(0,0,0,0.78))] opacity-80 transition group-hover:opacity-100" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_45%,rgba(78,34,15,0.85))] opacity-85 transition group-hover:opacity-100" />
         <div className="absolute inset-x-0 bottom-0 p-5">
-          <h2 className="editable-display line-clamp-2 text-lg font-semibold leading-snug tracking-[-0.02em] text-white">{post.title}</h2>
-          <span className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-white/70">View image <ArrowUpRight className="h-3.5 w-3.5" /></span>
+          <h2 className="editable-display line-clamp-2 text-lg font-extrabold leading-snug tracking-[-0.01em] text-[var(--tk-on-accent)]">{post.title}</h2>
+          <span className="mt-2 inline-flex items-center gap-1.5 text-xs font-bold text-[var(--tk-on-accent)]/75">View image <ArrowUpRight className="h-3.5 w-3.5" /></span>
         </div>
       </div>
     </Link>
