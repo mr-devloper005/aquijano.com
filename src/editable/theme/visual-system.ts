@@ -8,6 +8,7 @@ export type Slot4VisualPreset =
   | 'tech-directory'
   | 'retro-bulletin'
   | 'visual-gallery'
+  | 'playful-directory'
 
 export const visualPresets = {
   'editorial-paper': {
@@ -94,6 +95,20 @@ export const visualPresets = {
     },
     shape: 'stickers, tabs, framed modules, playful dividers',
   },
+  'playful-directory': {
+    label: 'Playful Directory',
+    mood: 'warm, friendly, hand-built directory for freelancers',
+    fontDirection: 'chunky rounded display headings with warm readable body copy',
+    colors: {
+      background: '#F7F1DE',
+      foreground: '#4E220F',
+      muted: '#7A5B44',
+      primary: '#4E220F',
+      accent: '#9D6638',
+      surface: '#FFFCF3',
+    },
+    shape: 'pill buttons, rounded cards, soft dot-grid textures, arrow-bullet lists',
+  },
   'visual-gallery': {
     label: 'Visual Gallery',
     mood: 'cinematic, image-led, immersive',
@@ -112,7 +127,7 @@ export const visualPresets = {
 
 export const visualSystem = {
   productKind: slot4BrandConfig.productKind,
-  recommendedPreset: 'tech-directory',
+  recommendedPreset: 'playful-directory',
   radius: {
     sm: '0.75rem',
     md: '1.25rem',
