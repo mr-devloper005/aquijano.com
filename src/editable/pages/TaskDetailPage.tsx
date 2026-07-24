@@ -77,12 +77,25 @@ const hardenLinks = (html: string) => html.replace(/<a\s+([^>]*href=["'][^"']+["
   return `<a ${next}>`
 })
 
-const sanitizeHtml = (html: string) => hardenLinks(html
+// Some source posts ship the category as both a header link and a tag/badge
+// with the same visible text — keep only the first occurrence.
+const dedupeAnchorText = (html: string) => {
+  const seen = new Set<string>()
+  return html.replace(/<a\b[^>]*>([\s\S]*?)<\/a>/gi, (match, inner) => {
+    const key = String(inner).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().toLowerCase()
+    if (!key) return match
+    if (seen.has(key)) return ''
+    seen.add(key)
+    return match
+  })
+}
+
+const sanitizeHtml = (html: string) => dedupeAnchorText(hardenLinks(html
   .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
   .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
   .replace(/<(iframe|object|embed)[^>]*>[\s\S]*?<\/\1>/gi, '')
   .replace(/\s+on\w+=("[^"]*"|'[^']*'|[^\s>]+)/gi, '')
-  .replace(/(href|src)=(['"])javascript:[\s\S]*?\2/gi, '$1="#"'))
+  .replace(/(href|src)=(['"])javascript:[\s\S]*?\2/gi, '$1="#"')))
 
 const formatPlainText = (raw: string) => {
   const value = raw.trim()
