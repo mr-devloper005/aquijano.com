@@ -148,7 +148,7 @@ const reviewsOf = (post: SitePost) => {
   return 6 + (hashStr((post.slug || post.title || 'x') + 'r') % 480)
 }
 
-function DetailMeta({ post, category, center = false }: { post: SitePost; category?: string; center?: boolean }) {
+function DetailMeta({ post, center = false }: { post: SitePost; category?: string; center?: boolean }) {
   const rating = ratingOf(post)
   const filled = Math.round(rating)
   return (
@@ -160,12 +160,6 @@ function DetailMeta({ post, category, center = false }: { post: SitePost; catego
       </span>
       <span className="text-sm font-semibold text-[var(--tk-text)]">{rating.toFixed(1)}</span>
       <span className="text-sm text-[var(--tk-muted)]">{reviewsOf(post)} reviews</span>
-      {category ? (
-        <>
-          <span className="h-1 w-1 rounded-full bg-[var(--tk-muted)] opacity-50" />
-          <span className="text-sm text-[var(--tk-muted)]">{category}</span>
-        </>
-      ) : null}
     </div>
   )
 }
@@ -504,7 +498,7 @@ function BadgeLine({ label, value }: { label: string; value: string }) {
   )
 }
 
-function RelatedPanel({ task, post, related }: { task: TaskKey; post: SitePost; related: SitePost[] }) {
+function RelatedPanel({ task, related }: { task: TaskKey; post: SitePost; related: SitePost[] }) {
   const taskConfig = getTaskConfig(task)
   return (
     <div className="space-y-6">
